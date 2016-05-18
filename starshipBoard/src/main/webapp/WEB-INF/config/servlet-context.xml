@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+	
+	
+	
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+	
+	<context:component-scan base-package="starship">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+	
+	<!-- <bean id="beanValidator" class="org.springmodules.validation.commons.DefaultBeanValidator">
+		<property name="validatorFactory" ref="validatorFactory"/>
+	</bean>
+	
+	<bean id="validatorFactory" class="org.springmodules.validation.commons.DefaultValidatorFactory">
+		<property name="validationConfigLocations">
+			<list>
+				<value>/WEB-INF/config/validator-rules.xml</value>
+				<value>/WEB-INF/config/validator.xml</value>
+			</list>
+		</property>
+	</bean> -->
+	
+	<!-- XStrem -->
+	<bean id="xstreamMarshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
+		<property name="autodetectAnnotations" value="true"/>
+	</bean>
+	
+	<!-- xmlView -->
+	<bean id="xmlView" name="xmlView" class="org.springframework.web.servlet.view.xml.MarshallingView">
+		<property name="marshaller" ref="xstreamMarshaller"/>
+		<property name="contentType" value="application/xml; charset=UTF-8"/>
+		<property name="modelKey" value="xmlData"/>
+	</bean>
+</beans>

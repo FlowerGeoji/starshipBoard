@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="board">
+	
+	<select id="getBoardList" parameterType="java.util.Map" resultType="starship.vo.boardVO">
+		select rnum
+			 , member_id
+			 , board_id
+			 , subject
+			 , to_char(reg_date,'YYYY-MM-DD / hh:mm') reg_date
+			 , writer
+		  from (select a.*
+		  			 , rownum rnum
+		  		  from (select aa.*
+		  		  			 , bb.name writer
+		  		  		  from board aa, member bb
+		  		  		 where aa.member_id = bb.member_id
+		  		  		   and del_chk = '0'
+		  		  		 order by reg_date desc) a)
+		<where>
+		   and rnum <![CDATA[>=]]> #{startNum}
+		   and rnum <![CDATA[<=]]> #{endNum}
+		</where>
+	</select>
+	
+	<select id="getBoard" parameterType="java.util.Map"	resultType="starship.vo.boardVO">
+		select a.member_id member_id
+		     , a.board_id board_id
+		     , a.subject subject
+		     , to_char(a.reg_date, 'YYYY-MM-DD / hh:mm') reg_date
+		     , a.contents contents
+		     , b.name writer
+		  from board a, member b
+		<where>
+		   and a.member_id = #{member_id} 
+		   and a.board_id = #{board_id}
+		   and a.member_id = b.member_id
+		   and del_chk = '0'
+		</where>
+	</select>
+	
+	<select id="getAllBoardCount" parameterType="java.util.Map" resultType="Integer">
+		select nvl(count(*),0)
+		  from board
+		<where>
+		   and del_chk = '0'
+		</where>
+	</select>
+	
+	<select id="getBoardCount" parameterType="java.util.Map" resultType="Integer">
+		select nvl(count(*),0)
+		  from (select a.*, rownum rnum
+		  		  from (select * from board where del_chk = '0' order by reg_date desc) a)
+		<where>
+		   and rnum <![CDATA[<=]]> #{start}
+		   and rnum <![CDATA[>=]]> #{end}
+		</where>
+	</select>
+	
+<!-- 	<selectOne id="getMaxBoardId" parameterType="starship.vo.boardVO" resultType="Integer"> -->
+<!-- 		select nvl(max(board_id),1) -->
+<!-- 		  from board -->
+<!-- 		<where> -->
+<!-- 		   and member_id = #{member_Id} -->
+<!-- 		</where> -->
+<!-- 	</selectOne> -->
+	
+	<insert id="setBoardWrite" parameterType="starship.vo.boardVO" keyProperty="board_id" keyColumn="board_id">
+		<selectKey resultType="Integer" keyProperty="board_id" order="BEFORE">
+			select nvl(max(board_id)+1,1)
+			  from board
+			 where member_id = #{member_id}
+		</selectKey>
+		
+		insert into board
+		     ( member_id
+		     , board_id
+		     , password
+		     , subject
+		     , contents)
+		values
+		     ( #{member_id}
+		     , #{board_id}
+		     , #{password}
+		     , #{subject}
+		     , #{contents})
+	</insert>
+	
+	<update id="setBoardUpdate" parameterType="starship.vo.boardVO">
+		update board
+		   set subject = #{subject}
+		     , contents = #{contents}
+		<where>
+		   and member_id = #{member_id}
+		   and board_id = #{board_id}
+		</where>
+	</update>
+	
+	<select id="getCheckBoardPassword" parameterType="starship.vo.boardVO" resultType="starship.vo.boardVO">
+		select *
+		  from board
+		<where>
+		   and member_id = #{member_id}
+		   and board_id = #{board_id}
+		   and password = #{password}
+		</where>
+	</select>
+	
+	<select id="getReplyList" parameterType="java.util.Map" resultType="starship.vo.replyVO">
+		select a.member_id
+		     , a.reply_id
+		     , a.group_id
+		     , a.board_id
+		     , a.board_member_id
+		     , a.rlevel
+		     , a.reply
+		     , to_char(a.reg_date, 'YYYY-MM-DD/hh:mm') as reg_date
+		     , b.name
+		  from reply a, member b
+		<where>
+		   and a.board_member_id = #{member_id}
+		   and a.board_id = #{board_id}
+		   and a.member_id = b.member_id
+		</where>
+		order by group_id desc, rlevel asc
+	</select>
+	
+	<insert id="setReplyWrite" parameterType="starship.vo.replyVO">
+		<selectKey resultType="Integer" keyProperty="reply_id" order="BEFORE">
+			select nvl(max(reply_id)+1,1)
+			  from reply
+			 where board_member_id = #{board_member_id}
+			   and board_id = #{board_id}
+		</selectKey>
+		
+		insert into reply
+		     ( member_id
+		     , reply_id
+		     , group_id
+		     , board_id
+		     , board_member_id
+		     , reply
+		     , rlevel)
+		values
+		     ( #{member_id}
+		     , #{reply_id}
+		     , #{reply_id}
+		     , #{board_id}
+		     , #{board_member_id}
+		     , #{reply}
+		     , 1)
+	</insert>
+	
+	<insert id="setReReplyWrite" parameterType="starship.vo.replyVO">
+		<selectKey resultType="Integer" keyProperty="reply_id" order="BEFORE">
+			select nvl(max(reply_id)+1,1)
+			  from reply
+			 where board_member_id = #{board_member_id}
+			   and board_id = #{board_id}
+		</selectKey>
+		
+		insert into reply
+		     ( member_id
+		     , reply_id
+		     , group_id
+		     , board_id
+		     , board_member_id
+		     , reply
+		     , rlevel)
+		values
+		     ( #{member_id}
+		     , #{reply_id}
+		     , #{group_id}
+		     , #{board_id}
+		     , #{board_member_id}
+		     , #{reply}
+		     , #{rlevel}+1)
+	</insert>
+	
+	<update id="setBoardDelete" parameterType="starship.vo.boardVO">
+		update board
+		   set del_chk = '1'
+		<where>
+		   and member_id = #{member_id}
+		   and board_id = #{board_id}
+		</where>
+	</update>
+	
+	<select id="getLoginCheck" parameterType="java.util.Map" resultType="starship.vo.memberVO">
+		select *
+		  from member
+		<where>
+		   and member_id = #{member_id}
+		   and password = #{password}
+		</where>
+	</select>
+	
+	<insert id="setJoin" parameterType="starship.vo.memberVO">
+		insert into member
+		     ( member_id
+		     , password
+		     , name)
+		values
+		     ( #{member_id}
+		     , #{password}
+		     , #{name})
+	</insert>
+	
+	<select id="isJoined" parameterType="java.util.Map" resultType="starship.vo.memberVO">
+		select *
+		  from member
+		<where>
+		   and member_id = #{member_id}
+		</where>
+	</select>
+</mapper>
