@@ -1,6 +1,7 @@
 package starship;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -298,6 +299,47 @@ public class boardController {
 			e.printStackTrace();
 			xml.setMessage(e.getMessage());
 			xml.setError(true);
+		}
+		
+		model.addAttribute("xmlData", xml);
+		return xmlView;
+	}
+	
+	/**
+	 * 
+	 * @param board
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping("/setBoardDelete")
+	public View setBoardDelete(@ModelAttribute("boardVO")boardVO board
+								, Model model)
+	{
+		XmlResult xml = new XmlResult();
+		
+		try
+		{
+			//비밀번호 체크
+			if(!boardDAO.getCheckBoardPassword(board))
+			{
+				xml.setMessage("PASSWORD is incorrected");
+				xml.setError(true);
+			}
+			else
+			{
+				//비밀번호가 맞으면 Update 실행
+				int result = boardDAO.setBoardDelete(board);
+				if(result == 1)
+				{
+					xml.setMessage("Board Delete Success");
+					xml.setError(false);
+				}
+			}
+			
+		}catch(Exception e)
+		{
+			e.printStackTrace();
+			fail(e.getMessage());
 		}
 		
 		model.addAttribute("xmlData", xml);

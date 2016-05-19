@@ -60,7 +60,7 @@ public class boardDAOImpl extends SqlSessionDaoSupport implements boardDAO{
 	@Override
 	public boolean getCheckBoardPassword(boardVO paramVO) {
 		// TODO Auto-generated method stub
-		if(getSqlSession().selectOne("board.getCheckBoardPassword", paramVO) != null)
+		if(getSqlSession().selectList("board.getCheckBoardPassword", paramVO).size()==1)
 			return true;
 		return false;
 	}

@@ -82,9 +82,34 @@
 				});
 	}
 	
-	function replyAppend(replyId)
+	function boardDelete(memmber_id, board_id)
 	{
-		replyId.style.visibility = 'visible';
+		jQuery.ajax({
+			type: 'POST',
+			url : './setBoardDelete.do',
+			data : jQuery('#passwordForm :input').serialize()
+		}).done(function (data)
+				{
+					var message = jQuery(data).find("message").text();
+					var error = jQuery(data).find("error").text();
+					if(error == 'false')
+					{
+						alert(message);
+						location.href = 'getBoardList.do';
+					}
+					else
+						alert(message);
+				});
+	}
+	
+	function chkPasswordOn()
+	{
+		var divTemp = document.getElementById("passwordForm");
+		
+		if(divTemp.style.display == "none")
+			$('#passwordForm').attr('style','display:done');
+		else
+			$('#passwordForm').attr('style','display:none');
 	}
 	</script>
 	
@@ -139,7 +164,14 @@
 				<input type="button" value="전체글보기" onclick="location.href='getBoardList.do'">&nbsp;&nbsp;&nbsp;
 				<c:if test="${sessionScope.member.member_id == board.member_id}">
 					<input type="button" value="수정" onclick="location.href='getBoardUpdate.do?member_id=${board.member_id}&board_id=${board.board_id }'">&nbsp;&nbsp;&nbsp;
-					<input type="button" value="삭제" onclick="location.href='getBoardDelete.do'">&nbsp;&nbsp;&nbsp;
+					<input type="button" value="삭제" onclick="chkPasswordOn();">&nbsp;&nbsp;&nbsp;
+					<form id="passwordForm" style="display:none;" action="setBoardDelete.do" commandName="boardDAO">
+						<input type="hidden" name="member_id" value="${board.member_id }">
+						<input type="hidden" name="board_id" value="${board.board_id }">
+						비밀번호 : <input id="password" type="text" name="password">
+						&nbsp;&nbsp;
+						<input type="button" value="확인" onclick="boardDelete();">
+					</form>
 				</c:if>
 				</td>
 			</tr> 
