@@ -4,10 +4,13 @@
 	xmlns:aop="http://www.springframework.org/schema/aop"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
-		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
 	
 	
 	
@@ -44,4 +47,18 @@
 		<property name="contentType" value="application/xml; charset=UTF-8"/>
 		<property name="modelKey" value="xmlData"/>
 	</bean>
+	
+	<!-- 트랜젝션 메니저 어노테이션 -->
+	<tx:annotation-driven transaction-manager="txManager"/>
+	
+<!-- 	<tx:advice id="txAdvice" transaction-manager="txManager"> -->
+<!-- 		<tx:attributes> -->
+<!-- 			<tx:method name="set*"/> -->
+<!-- 			<tx:method name="get*"/> -->
+<!-- 		</tx:attributes> -->
+<!-- 	</tx:advice> -->
+	
+<!-- 	<aop:config> -->
+<!-- 		<aop:advisor advice-ref="txAdvice"/> -->
+<!-- 	</aop:config> -->
 </beans>

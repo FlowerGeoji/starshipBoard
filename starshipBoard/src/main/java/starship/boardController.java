@@ -13,7 +13,9 @@ import javax.servlet.http.HttpSession;
 import org.markdown4j.Markdown4jProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +34,11 @@ public class boardController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(boardController.class);
 	
-	@Resource(name="boardDAO")
-	private boardDAOImpl boardDAO;
+	@Autowired
+	private boardServiceImpl boardService;
+	
+//	@Resource(name="boardDAO")
+//	private boardDAOImpl boardDAO;
 	
 	@Resource(name="xmlView")
 	private View xmlView;
@@ -57,7 +62,7 @@ public class boardController {
 			/*
 			 * 페이징 처리
 			 */
-			int allBoardCount = boardDAO.getAllBoardCount();
+			int allBoardCount = boardService.getAllBoardCount();
 			int pageBlockCount = allBoardCount/pageSize + (allBoardCount%pageSize==0 ? 0:1);
 			int startPageNum = (((pageNum-1)/pageSize)*pageSize) + 1;
 			int endPageNum = startPageNum + pageSize - 1;
@@ -68,22 +73,7 @@ public class boardController {
 			/*
 			 * 게시글 목록 가져오기
 			 */
-			List<boardVO> boardList = null;
-			try
-			{
-				if(allBoardCount > 0)
-				{
-					boardList = boardDAO.getBoardList(pageNum, pageSize);
-				}
-				
-				else
-				{
-					boardList = Collections.emptyList();
-				}
-			}catch(Exception e)
-			{
-				e.printStackTrace();
-			}
+			List<boardVO> boardList = boardService.getBoardList(pageNum, pageSize);
 			
 			mav.addObject("allBoardCount",allBoardCount);
 			mav.addObject("boardList", boardList);
@@ -112,31 +102,17 @@ public class boardController {
 		ModelAndView mav = new ModelAndView();
 		mav.setViewName("boardView");
 		
-		try
-		{
-			/*
-			 * 게시글 내용 가져오기
-			 */
-			HashMap paramMap = new HashMap();
-			paramMap.put("member_id", member_id);
-			paramMap.put("board_id", board_id);
-			boardVO board = boardDAO.getBoardView(paramMap);
-			
-			mav.addObject("board",board);
-			
-			/*
-			 * 게시글 댓글 내용 가져오기
-			 */
-			paramMap.clear();
-			paramMap.put("member_id", member_id);
-			paramMap.put("board_id", board_id);
-			List<replyVO> replyList = boardDAO.getReplyList(paramMap);
-			
-			mav.addObject("replyList", replyList);
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		/*
+		 * 게시판 내용 가져오기
+		 */
+		boardVO board = boardService.getBoardView(member_id, board_id);
+		mav.addObject("board",board);
+		
+		/*
+		 * 게시글 댓글 내용 가져오기
+		 */
+		List<replyVO> replyList = boardService.getReplyList(member_id, board_id);
+		mav.addObject("replyList", replyList);
 		
 		return mav;
 	}
@@ -172,14 +148,8 @@ public class boardController {
 	{
 		ModelAndView mav = new ModelAndView();
 		
-		try
-		{
-			board.setContents(new Markdown4jProcessor().process(board.getContents()));
-			boardDAO.setBoardWrite(board);
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		boardService.setBoardWrite(board);
+		
 		mav.setViewName("redirect:getBoardView.do?member_id="+board.getMember_id()+"&board_id="+board.getBoard_id());
 		
 		return mav;
@@ -204,18 +174,9 @@ public class boardController {
 		if(!((memberVO)session.getAttribute("member")).getMember_id().equals(member_id))
 			return null;
 		
-		try
-		{
-			HashMap paramMap = new HashMap();
-			paramMap.put("member_id", member_id);
-			paramMap.put("board_id", board_id);
-			boardVO board = boardDAO.getBoardView(paramMap);
-			
-			mav.addObject("board", board);
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		boardVO board = boardService.getBoardView(member_id, board_id);
+		
+		mav.addObject("board", board);
 		
 		return mav;
 	}
@@ -234,24 +195,7 @@ public class boardController {
 	{
 		XmlResult xml = new XmlResult();
 		
-		try
-		{
-			if(!boardDAO.getCheckBoardPassword(board))
-			{
-				xml.setMessage("PASSWORD is incorrected");
-				xml.setError(true);
-			}
-			else
-			{
-				boardDAO.setBoardUpdate(board);
-				xml.setMessage("Board Update Success");
-				xml.setError(false);
-			}
-			
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		boardService.setBoardUpdate(board, xml);
 		
 		model.addAttribute("xmlData", xml);
 		return xmlView;
@@ -268,17 +212,8 @@ public class boardController {
 							, Model model)
 	{
 		XmlResult xml = new XmlResult();
-		try
-		{
-			boardDAO.setReplyWrite(reply);
-			xml.setMessage("Reply Write Success");
-			xml.setError(false);
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-			xml.setMessage(e.getMessage());
-			xml.setError(true);
-		}
+		
+		boardService.setReplyWrite(reply, xml);
 		
 		model.addAttribute("xmlData", xml);
 		return xmlView;
@@ -289,17 +224,8 @@ public class boardController {
 								, Model model)
 	{
 		XmlResult xml = new XmlResult();
-		try
-		{
-			boardDAO.setReReplyWrite(reply);
-			xml.setMessage("ReReply Write Success");
-			xml.setError(false);
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-			xml.setMessage(e.getMessage());
-			xml.setError(true);
-		}
+		
+		boardService.setReReplyWrite(reply, xml);
 		
 		model.addAttribute("xmlData", xml);
 		return xmlView;
@@ -317,30 +243,7 @@ public class boardController {
 	{
 		XmlResult xml = new XmlResult();
 		
-		try
-		{
-			//비밀번호 체크
-			if(!boardDAO.getCheckBoardPassword(board))
-			{
-				xml.setMessage("PASSWORD is incorrected");
-				xml.setError(true);
-			}
-			else
-			{
-				//비밀번호가 맞으면 Update 실행
-				int result = boardDAO.setBoardDelete(board);
-				if(result == 1)
-				{
-					xml.setMessage("Board Delete Success");
-					xml.setError(false);
-				}
-			}
-			
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-			fail(e.getMessage());
-		}
+		boardService.setBoardDelete(board, xml);
 		
 		model.addAttribute("xmlData", xml);
 		return xmlView;
@@ -360,29 +263,15 @@ public class boardController {
 									, Model model
 									, HttpSession session)
 	{
+		
+		
 		XmlResult xml = new XmlResult();
-		try
-		{
-			HashMap paramMap = new HashMap();
-			paramMap.put("member_id", member_id);
-			paramMap.put("password", password);
-			memberVO member = boardDAO.getLoginCheck(paramMap);
-			
-			if(member!=null)
-			{
-				xml.setMessage("Login Success");
-				xml.setError(false);
-				session.setAttribute("member", member);
-			}
-			else
-			{
-				xml.setMessage("ID or PASSWORD is incorrected");
-				xml.setError(true);
-			}
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-		}
+		
+		memberVO member = boardService.getLoginCheck(member_id, password, xml);
+		//new XmlResult();
+		
+		if(!xml.isError())
+			session.setAttribute("member", member);
 		
 		model.addAttribute("xmlData", xml);
 		return xmlView;
@@ -430,30 +319,8 @@ public class boardController {
 								, Model model)
 	{
 		XmlResult xml = new XmlResult();
-		int isJoin = -1;
 		
-		try
-		{
-			HashMap paramMap = new HashMap();
-			paramMap.put("member_id", member.getMember_id());
-			isJoin = boardDAO.isJoined(paramMap);
-			if(isJoin == 1)
-			{
-				xml.setMessage("해당 ID는 사용할 수 없습니다.");
-				xml.setError(true);
-			}
-			else
-			{
-				boardDAO.setJoin(member);
-				xml.setMessage("Join Success");
-				xml.setError(false);
-			}
-		}catch(Exception e)
-		{
-			e.printStackTrace();
-			xml.setMessage(e.getMessage());
-			xml.setError(true);
-		}
+		boardService.setJoin(member, xml);
 		
 		model.addAttribute("xmlData", xml);
 		return xmlView;

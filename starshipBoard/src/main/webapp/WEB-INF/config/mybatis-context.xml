@@ -21,17 +21,30 @@
 		<property name="dataSource" ref="dataSource"/>
 		<property name="mapperLocations" value="classpath:/starship/dao/map/*.xml"/>
 		<property name="configLocation" value="/WEB-INF/config/mybatis-config.xml"/>
-		<property name="transactionFactory">
-			<bean class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory"/>
-		</property>
+<!-- 		<property name="transactionFactory"> -->
+<!-- 			<bean class="org.apache.ibatis.transaction.managed.ManagedTransactionFactory"/> -->
+<!-- 		</property> -->
 	</bean>
 	
 	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
 		<constructor-arg index="0" ref="sqlSessionFactory"/>
 	</bean>
 	
-	<!-- ========================= DAO DEFINITIONS =========================== -->
-	<bean class="starship.dao.boardDAOImpl" id="boardDAO">
-		<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+	<!-- 트랜젝션 매니저 빈 추가 -->
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
 	</bean>
+	
+	<!-- ========================= SERVICE DEFINITIONS =========================== -->
+	<bean class="starship.boardServiceImpl" id="boardService">
+		<property name="boardDao">
+			<bean class="starship.dao.boardDAOImpl" id="boardDao">
+				<property name="sqlSessionFactory" ref="sqlSessionFactory"/>
+			</bean>
+		</property>
+	</bean>
+	
+<!-- 	<bean class="starship.dao.boardDAOImpl" id="boardDAO"> -->
+<!-- 		<property name="sqlSessionFactory" ref="sqlSessionFactory"/> -->
+<!-- 	</bean> -->
 </beans>

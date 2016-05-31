@@ -11,12 +11,8 @@ import starship.vo.*;
 public class boardDAOImpl extends SqlSessionDaoSupport implements boardDAO{
 
 	@Override
-	public List getBoardList(int pageNum, int pageSize) {
+	public List getBoardList(Map paramMap) {
 		// TODO Auto-generated method stub
-		Map paramMap = new HashMap<String, Integer>();
-		paramMap.put("startNum", (pageNum-1)*pageSize + 1);
-		paramMap.put("endNum", pageNum*pageSize);
-		//sqlSession = sqlSessionFactory.openSession();
 		return getSqlSession().selectList("board.getBoardList", paramMap);
 	}
 
@@ -58,11 +54,9 @@ public class boardDAOImpl extends SqlSessionDaoSupport implements boardDAO{
 	}
 
 	@Override
-	public boolean getCheckBoardPassword(boardVO paramVO) {
+	public List getCheckBoardPassword(boardVO paramVO) {
 		// TODO Auto-generated method stub
-		if(getSqlSession().selectList("board.getCheckBoardPassword", paramVO).size()==1)
-			return true;
-		return false;
+		return getSqlSession().selectList("board.getCheckBoardPassword", paramVO);
 	}
 
 	@Override
@@ -90,13 +84,14 @@ public class boardDAOImpl extends SqlSessionDaoSupport implements boardDAO{
 	}
 
 	@Override
-	public int isJoined(Map<String, Object> paramMap) {
+	public List isJoined(Map<String, Object> paramMap) {
 		// TODO Auto-generated method stub
-		List<memberVO> temp = getSqlSession().selectList("board.isJoined", paramMap);
-		if(getSqlSession().selectList("board.isJoined", paramMap).size() == 0)
-			return -1;
-		else
-			return 1;
+//		List<memberVO> temp = getSqlSession().selectList("board.isJoined", paramMap);
+//		if(getSqlSession().selectList("board.isJoined", paramMap).size() == 0)
+//			return -1;
+//		else
+//			return 1;
+		return getSqlSession().selectList("board.isjoined", paramMap);
 	}
 
 	@Override
